@@ -98,7 +98,7 @@ def is_project(project, raise_on_old_version=True):
 
     if raise_on_old_version and (
         not (project_dir / "reviews").exists()
-        or project_instance.config.get("version", "").startswith(("1", "0"))
+        or project_instance.config.get("version", "").startswith("1")
     ):
         raise ProjectNotFoundError(
             "Project is not compatible with ASReview LAB 2. Please upgrade the project."
