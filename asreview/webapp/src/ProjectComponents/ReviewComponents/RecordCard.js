@@ -29,6 +29,7 @@ const RecordCardContent = ({
   collapseAbstract,
   highlights,
   setHighlights,
+  allowHighlighting = true,
 }) => {
   const [readMoreOpen, toggleReadMore] = useToggle();
   const [highlightMode, setHighlightMode] = React.useState(null); // 'positive', 'negative', null
@@ -38,7 +39,7 @@ const RecordCardContent = ({
   };
 
   const handleMouseUp = (event) => {
-    if (!highlightMode) return;
+    if (!highlightMode || !allowHighlighting) return;
 
     const selection = window.getSelection();
     if (!selection.rangeCount || selection.isCollapsed) return;
@@ -312,82 +313,84 @@ const RecordCardContent = ({
               {score}
             </Typography>
             <Divider orientation="vertical" flexItem />
-            <Grid container spacing={0.5}>
-              <Grid item>
-                <Box
-                  component="button"
-                  onClick={() =>
-                    setHighlightMode(
-                      highlightMode === "positive" ? null : "positive",
-                    )
-                  }
-                  sx={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: "50%",
-                    border: "2px solid",
-                    borderColor:
-                      highlightMode === "positive" ? "green" : "transparent",
-                    bgcolor: "#4caf50",
-                    cursor: "pointer",
-                    "&:hover": { opacity: 0.8 },
-                  }}
-                  title="Positive Highlighter"
-                />
+            {allowHighlighting && (
+              <Grid container spacing={0.5}>
+                <Grid item>
+                  <Box
+                    component="button"
+                    onClick={() =>
+                      setHighlightMode(
+                        highlightMode === "positive" ? null : "positive",
+                      )
+                    }
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      border: "2px solid",
+                      borderColor:
+                        highlightMode === "positive" ? "green" : "transparent",
+                      bgcolor: "#4caf50",
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8 },
+                    }}
+                    title="Positive Highlighter"
+                  />
+                </Grid>
+                <Grid item>
+                  <Box
+                    component="button"
+                    onClick={() =>
+                      setHighlightMode(
+                        highlightMode === "negative" ? null : "negative",
+                      )
+                    }
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      border: "2px solid",
+                      borderColor:
+                        highlightMode === "negative" ? "red" : "transparent",
+                      bgcolor: "#f44336",
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8 },
+                    }}
+                    title="Negative Highlighter"
+                  />
+                </Grid>
+                <Grid item>
+                  {/* Eraser Tool */}
+                  <Box
+                    component="button"
+                    onClick={() =>
+                      setHighlightMode(
+                        highlightMode === "eraser" ? null : "eraser",
+                      )
+                    }
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      border: "2px solid",
+                      borderColor:
+                        highlightMode === "eraser" ? "#666" : "transparent",
+                      bgcolor: "#e0e0e0",
+                      color: "#333",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      "&:hover": { opacity: 0.8 },
+                      fontSize: "14px",
+                    }}
+                    title="Eraser"
+                  >
+                    x
+                  </Box>
+                </Grid>
               </Grid>
-              <Grid item>
-                <Box
-                  component="button"
-                  onClick={() =>
-                    setHighlightMode(
-                      highlightMode === "negative" ? null : "negative",
-                    )
-                  }
-                  sx={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: "50%",
-                    border: "2px solid",
-                    borderColor:
-                      highlightMode === "negative" ? "red" : "transparent",
-                    bgcolor: "#f44336",
-                    cursor: "pointer",
-                    "&:hover": { opacity: 0.8 },
-                  }}
-                  title="Negative Highlighter"
-                />
-              </Grid>
-              <Grid item>
-                {/* Eraser Tool */}
-                <Box
-                  component="button"
-                  onClick={() =>
-                    setHighlightMode(
-                      highlightMode === "eraser" ? null : "eraser",
-                    )
-                  }
-                  sx={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: "50%",
-                    border: "2px solid",
-                    borderColor:
-                      highlightMode === "eraser" ? "#666" : "transparent",
-                    bgcolor: "#e0e0e0",
-                    color: "#333",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    "&:hover": { opacity: 0.8 },
-                    fontSize: "14px",
-                  }}
-                  title="Eraser"
-                >
-                  x
-                </Box>
-              </Grid>
-            </Grid>
+            )}
           </Stack>
         </Stack>
 
@@ -468,6 +471,7 @@ const RecordCard = ({
   transitionSpeed = { enter: 500, exit: 100 },
   landscape = false,
   changeDecision = true,
+  allowHighlighting = true,
 }) => {
   const [open, setOpen] = React.useState(true);
   const [highlights, setHighlights] = React.useState(
@@ -502,6 +506,8 @@ const RecordCard = ({
               collapseAbstract={collapseAbstract}
               highlights={highlights}
               setHighlights={setHighlights}
+              allowHighlighting={allowHighlighting}
+              changeDecision={changeDecision}
             />
           </Grid>
           <Grid size={landscape ? 2 : 5}>

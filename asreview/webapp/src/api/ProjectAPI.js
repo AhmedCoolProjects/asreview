@@ -685,6 +685,10 @@ class ProjectAPI {
       body.set("tags", JSON.stringify(variables.tagValues));
     }
 
+    if (variables.highlights && Array.isArray(variables.highlights)) {
+      body.set("highlights", JSON.stringify(variables.highlights));
+    }
+
     if (variables.retrain_model) {
       body.set("retrain_model", 1);
     }

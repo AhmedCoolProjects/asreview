@@ -82,6 +82,7 @@ const LabeledRecord = ({ project_id, label, filterQuery, mode = "oracle" }) => {
                     }
                     modelLogLevel={modelLogLevel}
                     changeDecision={mode === "oracle"}
+                    allowHighlighting={false}
                     key={
                       "record-card-" +
                       project_id +
