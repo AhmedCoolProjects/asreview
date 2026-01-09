@@ -35,6 +35,7 @@ RESULTS_TABLE_COLUMNS_PANDAS_DTYPES = {
     "time": "Float64",
     "note": "object",
     "tags": "object",
+    "highlights": "object",
     "user_id": "Int64",
 }
 
@@ -110,6 +111,7 @@ class SQLiteState:
                             time FLOAT,
                             note TEXT,
                             tags JSON,
+                            highlights JSON,
                             user_id INTEGER)"""
         )
 
@@ -164,6 +166,12 @@ class SQLiteState:
             for col in RESULTS_TABLE_COLUMNS_PANDAS_DTYPES.keys()
             if col not in column_names
         ]
+        if missing_columns:
+            if "highlights" in missing_columns:
+                cur.execute("ALTER TABLE results ADD COLUMN highlights JSON")
+                self._conn.commit()
+                missing_columns.remove("highlights")
+
         if missing_columns:
             raise ValueError(
                 f"The results table does not contain the columns "
@@ -272,7 +280,9 @@ class SQLiteState:
             }
         ).to_sql("last_ranking", self._conn, if_exists="replace", index=False)
 
-    def add_labeling_data(self, record_ids, labels, tags=None, user_id=None):
+    def add_labeling_data(
+        self, record_ids, labels, tags=None, highlights=None, user_id=None
+    ):
         """Add the data corresponding to a labeling action to the state file.
 
         Parameters
@@ -283,6 +293,8 @@ class SQLiteState:
             A list of labels of the labeled records as int.
         tags: dict
             A dict of tags to save with the labeled records.
+        highlights: list
+            A list of highlights to save with the labeled records.
         user_id: int
             User id of the user who labeled the records.
         """
@@ -290,7 +302,10 @@ class SQLiteState:
         if tags is None:
             tags = [None for _ in record_ids]
 
-        if len({len(record_ids), len(labels), len(tags)}) != 1:
+        if highlights is None:
+            highlights = [None for _ in record_ids]
+
+        if len({len(record_ids), len(labels), len(tags), len(highlights)}) != 1:
             raise ValueError("Input data should be of the same length.")
 
         if tags is None:
@@ -300,6 +315,11 @@ class SQLiteState:
         else:
             tags = [json.dumps(tag) for tag in tags]
 
+        if highlights is None:
+            highlights = [None for _ in record_ids]
+        else:
+            highlights = [json.dumps(highlight) for highlight in highlights]
+
         labeling_time = time.time()
 
         con = self._conn
@@ -307,11 +327,12 @@ class SQLiteState:
         cur.executemany(
             (
                 """
-                INSERT INTO results(record_id,label,time,tags, user_id)
-                VALUES(?,?,?,?,?)
+                INSERT INTO results(record_id,label,time,tags,highlights,user_id)
+                VALUES(?,?,?,?,?,?)
                 ON CONFLICT(record_id) DO UPDATE
                     SET label=excluded.label, time=excluded.time,
-                    tags=excluded.tags, user_id=excluded.user_id
+                    tags=excluded.tags, highlights=excluded.highlights,
+                    user_id=excluded.user_id
             """
             ),
             [
@@ -320,6 +341,7 @@ class SQLiteState:
                     int(labels[i]),
                     labeling_time,
                     tags[i],
+                    highlights[i],
                     user_id,
                 )
                 for i in range(len(record_ids))
@@ -416,6 +438,7 @@ class SQLiteState:
             dtype=RESULTS_TABLE_COLUMNS_PANDAS_DTYPES,
         )
         result["tags"] = result["tags"].map(json.loads, na_action="ignore")
+        result["highlights"] = result["highlights"].map(json.loads, na_action="ignore")
         return result
 
     def get_results_table(self, columns=None, priors=True, pending=False):
@@ -475,6 +498,10 @@ class SQLiteState:
 
         if columns is None or "tags" in columns:
             df_results["tags"] = df_results["tags"].map(json.loads, na_action="ignore")
+        if columns is None or "highlights" in columns:
+            df_results["highlights"] = df_results["highlights"].map(
+                json.loads, na_action="ignore"
+            )
         return df_results
 
     def get_priors(self):
@@ -492,6 +519,9 @@ class SQLiteState:
             dtype=RESULTS_TABLE_COLUMNS_PANDAS_DTYPES,
         )
         df_results["tags"] = df_results["tags"].map(json.loads, na_action="ignore")
+        df_results["highlights"] = df_results["highlights"].map(
+            json.loads, na_action="ignore"
+        )
         return df_results
 
     def get_pool(self):
@@ -552,20 +582,28 @@ class SQLiteState:
         """
 
         if user_id is None:
-            return pd.read_sql_query(
+            pending = pd.read_sql_query(
                 """SELECT * FROM results WHERE label is null""",
                 self._conn,
                 dtype=RESULTS_TABLE_COLUMNS_PANDAS_DTYPES,
             )
         else:
-            return pd.read_sql_query(
+            pending = pd.read_sql_query(
                 """SELECT * FROM results WHERE label is null AND user_id=?""",
                 self._conn,
                 params=(user_id,),
                 dtype=RESULTS_TABLE_COLUMNS_PANDAS_DTYPES,
             )
 
-    def update(self, record_id, label=None, tags=None, user_id=None):
+        pending["tags"] = pending["tags"].map(json.loads, na_action="ignore")
+        pending["highlights"] = pending["highlights"].map(
+            json.loads, na_action="ignore"
+        )
+        return pending
+
+    def update(
+        self, record_id, label=None, tags=None, highlights=None, user_id=None
+    ):
         """Change the label or tag of an already labeled record.
 
         Parameters
@@ -589,8 +627,11 @@ class SQLiteState:
         if tags is not None:
             fields.append("tags = ?")
             values.append(json.dumps(tags))
+        if highlights is not None:
+            fields.append("highlights = ?")
+            values.append(json.dumps(highlights))
         if not fields:
-            raise ValueError("At least one of label or tags must be provided.")
+            raise ValueError("At least one of label, tags, or highlights must be provided.")
 
         values.append(record_id)
         sql = f"UPDATE results SET {', '.join(fields)} WHERE record_id = ?"

@@ -23,10 +23,15 @@ import { RecordCardLabeler, RecordCardModelTraining } from ".";
 
 import { fontSizeOptions } from "globals.js";
 
-const RecordCardContent = ({ record, fontSize, collapseAbstract }) => {
+const RecordCardContent = ({
+  record,
+  fontSize,
+  collapseAbstract,
+  highlights,
+  setHighlights,
+}) => {
   const [readMoreOpen, toggleReadMore] = useToggle();
   const [highlightMode, setHighlightMode] = React.useState(null); // 'positive', 'negative', null
-  const [highlights, setHighlights] = React.useState([]);
 
   const handleHighlightModeChange = (event, newMode) => {
     setHighlightMode(newMode);
@@ -465,6 +470,9 @@ const RecordCard = ({
   changeDecision = true,
 }) => {
   const [open, setOpen] = React.useState(true);
+  const [highlights, setHighlights] = React.useState(
+    record?.state?.highlights || [],
+  );
 
   const styledRepoCard = (
     <Box>
@@ -492,6 +500,8 @@ const RecordCard = ({
               record={record}
               fontSize={fontSize}
               collapseAbstract={collapseAbstract}
+              highlights={highlights}
+              setHighlights={setHighlights}
             />
           </Grid>
           <Grid size={landscape ? 2 : 5}>
@@ -521,6 +531,7 @@ const RecordCard = ({
               landscape={landscape}
               hotkeys={hotkeys}
               changeDecision={changeDecision}
+              highlights={highlights}
             />
           </Grid>
         </Grid>

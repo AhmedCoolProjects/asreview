@@ -142,6 +142,7 @@ const RecordCardLabeler = ({
   landscape = false,
   retrainAfterDecision = true,
   changeDecision = true,
+  highlights = [],
 }) => {
   const [editState] = useToggle(!(label === 1 || label === 0));
   const [showNotesDialog, toggleShowNotesDialog] = useToggle(false);
@@ -178,6 +179,7 @@ const RecordCardLabeler = ({
       record_id: record_id,
       label: label,
       tagValues: tagValuesState,
+      highlights: highlights,
       retrain_model: retrainAfterDecision,
       post: editState,
     });

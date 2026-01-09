@@ -1468,6 +1468,7 @@ def api_label_record(project, record_id):  # noqa: F401
     record_id = int(request.form.get("record_id"))
     label = int(request.form.get("label"))
     tags = json.loads(request.form.get("tags", "[]"))
+    highlights = json.loads(request.form.get("highlights", "[]"))
 
     if label not in [0, 1]:
         return jsonify(message="Invalid label"), 400
@@ -1480,12 +1481,15 @@ def api_label_record(project, record_id):  # noqa: F401
 
     with open_state(project.project_path) as state:
         if request.method == "PUT":
-            state.update(record_id, label=label, tags=tags, user_id=user_id)
+            state.update(
+                record_id, label=label, tags=tags, highlights=highlights, user_id=user_id
+            )
         else:
             state.add_labeling_data(
                 record_ids=[record_id],
                 labels=[label],
                 tags=[tags],
+                highlights=[highlights],
                 user_id=user_id,
             )
 
