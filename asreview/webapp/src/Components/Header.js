@@ -36,7 +36,9 @@ const HeaderTeam = ({ project_id }) => {
     enabled: !!project_id,
   });
 
-  const users = data?.filter((user) => user.member && !user.me);
+  const users = Array.isArray(data)
+    ? data.filter((user) => user.member && !user.me)
+    : [];
 
   return (
     <>
