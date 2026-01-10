@@ -147,7 +147,7 @@ const AnalyticsPage = () => {
           sx={{
             display: "flex",
             flexDirection: { xs: "column", sm: "row" },
-            alignItems: { xs: "center", sm: "center" },
+            alignItems: { xs: "center", sm: "flex-start" },
             justifyContent: { xs: "center", sm: "space-between" },
             pt: { xs: 4, sm: 2 },
             pb: { xs: 2, sm: 4 },
@@ -156,16 +156,38 @@ const AnalyticsPage = () => {
             gap: { xs: 2, sm: 0 },
           }}
         >
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: "Roboto Serif",
-              color: "text.secondary",
-            }}
-          >
-            {data?.name}
-          </Typography>
+          {/* Left side: Project name and description */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: "Roboto Serif",
+                color: "text.secondary",
+              }}
+            >
+              {data?.name}
+            </Typography>
+            {data?.description && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "text.disabled",
+                  mt: 1.5,
+                  fontStyle: "italic",
+                  borderLeft: "3px solid",
+                  borderColor: "primary.light",
+                  pl: 1.5,
+                  py: 0.5,
+                  maxWidth: { xs: "100%", sm: "90%" },
+                  lineHeight: 1.6,
+                }}
+              >
+                {data?.description}
+              </Typography>
+            )}
+          </Box>
 
+          {/* Right side: Record count and status */}
           <Stack
             direction="row"
             spacing={3}
@@ -174,6 +196,7 @@ const AnalyticsPage = () => {
               color: "text.secondary",
               typography: "body1",
               whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
             <Typography

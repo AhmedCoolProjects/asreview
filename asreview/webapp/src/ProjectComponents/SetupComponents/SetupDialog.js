@@ -9,6 +9,7 @@ import {
   IconButton,
   Input,
   Snackbar,
+  TextField,
   Tooltip,
 } from "@mui/material";
 import * as React from "react";
@@ -95,6 +96,100 @@ const DialogProjectName = ({ project_id, dataset_name }) => {
   );
 };
 
+const DialogProjectDescription = ({ project_id, description }) => {
+  const [state, setState] = React.useState({
+    description: description || "",
+    edit: false,
+  });
+
+  const { isLoading, mutate } = useMutation(ProjectAPI.mutateInfo, {
+    mutationKey: ["mutateInfoDescription"],
+    onSuccess: (data) => {
+      setState({
+        description: data?.description || "",
+        edit: false,
+      });
+    },
+  });
+
+  return (
+    <Box sx={{ px: 3, pb: 2 }}>
+      {!state.edit && (
+        <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+          <Box sx={{ flex: 1 }}>
+            <Box
+              sx={{
+                fontSize: "0.875rem",
+                color: "text.secondary",
+                mb: 0.5,
+              }}
+            >
+              Description
+            </Box>
+            <Box sx={{ fontSize: "0.95rem", minHeight: 24 }}>
+              {state.description || (
+                <Box
+                  component="span"
+                  sx={{ fontStyle: "italic", color: "text.disabled" }}
+                >
+                  Add a description (e.g., search query, source, date range)
+                </Box>
+              )}
+            </Box>
+          </Box>
+          <Tooltip title={"Edit description"}>
+            <IconButton
+              onClick={() => {
+                setState({
+                  ...state,
+                  edit: true,
+                });
+              }}
+              size="small"
+            >
+              <Edit fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
+      {state.edit && (
+        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+          <TextField
+            value={state.description}
+            onChange={(e) => {
+              setState({
+                ...state,
+                description: e.target.value,
+              });
+            }}
+            disabled={isLoading}
+            placeholder="Describe how you obtained this dataset (e.g., search query, platform, date range, source titles)"
+            multiline
+            minRows={2}
+            maxRows={4}
+            fullWidth
+            size="small"
+            autoFocus
+          />
+          <Tooltip title={"Save description"}>
+            <IconButton
+              onClick={() => {
+                mutate({
+                  project_id: project_id,
+                  description: state.description,
+                });
+              }}
+              disabled={isLoading}
+            >
+              <Save />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
 const SetupDialog = ({ project_id, mode, open, onClose }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -161,6 +256,10 @@ const SetupDialog = ({ project_id, mode, open, onClose }) => {
         {data && (
           <ProjectContext.Provider value={data.id}>
             <DialogProjectName project_id={data.id} dataset_name={data.name} />
+            <DialogProjectDescription
+              project_id={data.id}
+              description={data.description}
+            />
             <DialogContent>
               {mode === projectModes.SIMULATION ? (
                 <>
