@@ -1524,6 +1524,27 @@ def api_update_note(project, record_id):  # noqa: F401
     return jsonify({"success": True})
 
 
+def _get_prefixed_global_tags():
+    try:
+        path = Path(asreview_path(), "global_tags.json")
+        with open(path, "r") as f:
+            tags = json.load(f)
+
+        for group in tags:
+            # Prefix group ID to avoid collision with project tags
+            group["id"] = f"global_group_{group['id']}"
+
+            # Prefix tag IDs
+            if "values" in group:
+                for tag in group["values"]:
+                    if "id" in tag:
+                        tag["id"] = f"global_{tag['id']}"
+
+        return tags
+    except Exception:
+        return []
+
+
 @bp.route("/projects/<project_id>/get_record", methods=["GET"])
 @login_required
 @project_authorization
@@ -1554,7 +1575,7 @@ def api_get_record(project):  # noqa: F401
 
     item = asdict(project.data_store.get_records(pending["record_id"].iloc[0]))
     item["state"] = pending.iloc[0].to_dict()
-    item["tags_form"] = read_tags_data(project)
+    item["tags_form"] = (read_tags_data(project) or []) + _get_prefixed_global_tags()
     item["state"]["user"] = None
     del item["state"]["user_id"]
 
