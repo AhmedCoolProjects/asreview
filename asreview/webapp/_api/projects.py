@@ -1741,3 +1741,147 @@ def revoke_project_invitation_link(project_id):
             )
 
     return response
+
+
+# =============================================================================
+# Global Tags API
+# =============================================================================
+
+
+def _get_global_tags_path():
+    """Get the path to the global tags file."""
+    return Path(asreview_path(), "global_tags.json")
+
+
+@bp.route("/global-tags", methods=["GET"])
+@login_required
+def get_global_tags():
+    """Get all global tag groups."""
+    tags_path = _get_global_tags_path()
+
+    try:
+        with open(tags_path, "r") as f:
+            return jsonify(json.load(f))
+    except FileNotFoundError:
+        return jsonify([])
+    except Exception as err:
+        logging.exception(err)
+        return jsonify([]), 500
+
+
+@bp.route("/global-tags", methods=["POST"])
+@login_required
+def create_global_tag_group():
+    """Create a new global tag group."""
+    tags_path = _get_global_tags_path()
+
+    new_tag_group = json.loads(request.form.get("group", "[]"))
+
+    if not new_tag_group:
+        return jsonify(message="No tag group found."), 400
+
+    def add_ids_to_group(group, group_id=0):
+        group["id"] = group_id
+        return add_id_to_tags(group)
+
+    try:
+        with open(tags_path, "r") as f:
+            tags = json.load(f)
+
+        tags.append(
+            add_ids_to_group(
+                new_tag_group, group_id=max([g["id"] for g in tags], default=0) + 1
+            )
+        )
+
+        with open(tags_path, "w") as f:
+            json.dump(tags, f)
+
+        return jsonify(tags)
+
+    except FileNotFoundError:
+        new_tag_group = add_ids_to_group(new_tag_group)
+
+        with open(tags_path, "w") as f:
+            json.dump([new_tag_group], f)
+
+        return jsonify([new_tag_group])
+    except Exception as err:
+        logging.exception(err)
+        return jsonify(message="Failed to create global tag group."), 500
+
+
+@bp.route("/global-tags/<int:group_id>", methods=["PUT"])
+@login_required
+def update_global_tag_group(group_id):
+    """Update a global tag group by its ID."""
+    tags_path = _get_global_tags_path()
+
+    updated_tag_group = json.loads(request.form.get("group", "[]"))
+
+    if not updated_tag_group:
+        return jsonify(message="No tag group found."), 400
+
+    if "label" not in updated_tag_group:
+        return jsonify(message="No tag group label found."), 400
+
+    if "export" not in updated_tag_group:
+        return jsonify(message="No tag group export found."), 400
+
+    if "values" not in updated_tag_group:
+        return jsonify(message="No tag group values found."), 400
+
+    updated_tag_group = add_id_to_tags(updated_tag_group)
+
+    try:
+        with open(tags_path, "r") as f:
+            groups = json.load(f)
+
+        group_index = next(
+            (i for i, g in enumerate(groups) if g["id"] == group_id), None
+        )
+
+        if group_index is None:
+            return jsonify(message=f"Global tag group '{group_id}' not found."), 404
+
+        groups[group_index] = updated_tag_group
+
+        with open(tags_path, "w") as f:
+            json.dump(groups, f)
+
+        return jsonify(updated_tag_group)
+    except FileNotFoundError:
+        return jsonify(message=f"Global tag group '{group_id}' not found."), 404
+    except Exception as err:
+        logging.exception(err)
+        return jsonify(message="Failed to update global tag group."), 500
+
+
+@bp.route("/global-tags/<int:group_id>", methods=["DELETE"])
+@login_required
+def delete_global_tag_group(group_id):
+    """Delete a global tag group by its ID."""
+    tags_path = _get_global_tags_path()
+
+    try:
+        with open(tags_path, "r") as f:
+            groups = json.load(f)
+
+        group_index = next(
+            (i for i, g in enumerate(groups) if g["id"] == group_id), None
+        )
+
+        if group_index is None:
+            return jsonify(message=f"Global tag group '{group_id}' not found."), 404
+
+        groups.pop(group_index)
+
+        with open(tags_path, "w") as f:
+            json.dump(groups, f)
+
+        return jsonify({"success": True})
+    except FileNotFoundError:
+        return jsonify(message=f"Global tag group '{group_id}' not found."), 404
+    except Exception as err:
+        logging.exception(err)
+        return jsonify(message="Failed to delete global tag group."), 500

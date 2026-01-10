@@ -1,6 +1,7 @@
 import {
   SettingsOutlined,
   Diversity1Outlined,
+  LocalOfferOutlined,
   Menu,
 } from "@mui/icons-material";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@mui/material";
 import {
   CommunityDialog,
+  GlobalTagsDialog,
   Header,
   SettingsDialog,
   ErrorBoundary,
@@ -34,6 +36,7 @@ const BottomNavigationDrawerItems = ({
 }) => {
   const [onHelp, toggleHelp] = useToggle();
   const [onSettings, toggleSettings] = useToggle();
+  const [onGlobalTags, toggleGlobalTags] = useToggle();
 
   return (
     <>
@@ -41,6 +44,19 @@ const BottomNavigationDrawerItems = ({
 
       {/* Bottom Section */}
       <Box>
+        <DrawerItem
+          key={"tags"}
+          primary={"Tags"}
+          rail={rail}
+          icon={<LocalOfferOutlined />}
+          onClick={() => {
+            if (toggleNavDrawer) {
+              toggleNavDrawer();
+            }
+            toggleGlobalTags();
+          }}
+        />
+        <GlobalTagsDialog open={onGlobalTags} onClose={toggleGlobalTags} />
         <DrawerItem
           key={"settings"}
           primary={"Settings"}

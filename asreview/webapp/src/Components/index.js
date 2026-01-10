@@ -5,6 +5,7 @@ export { default as ConfirmAccount } from "./ConfirmAccount";
 export { default as ForgotPassword } from "./ForgotPassword";
 export { default as Header } from "./Header";
 export { default as CommunityDialog } from "./CommunityDialog";
+export { default as GlobalTagsDialog } from "./GlobalTagsDialog";
 export { default as HelpPrivacyTermsButton } from "./HelpPrivacyTermsButton";
 export { default as HelpPopover } from "./HelpPopover";
 export { default as InlineErrorHandler } from "./InlineErrorHandler";

@@ -661,6 +661,83 @@ class ProjectAPI {
     });
   }
 
+  // =============================================================================
+  // Global Tags API
+  // =============================================================================
+
+  static fetchGlobalTags() {
+    const url = api_url + `global-tags`;
+    return new Promise((resolve, reject) => {
+      axios
+        .get(url, { withCredentials: true })
+        .then((result) => {
+          resolve(result["data"]);
+        })
+        .catch((error) => {
+          reject(axiosErrorHandler(error));
+        });
+    });
+  }
+
+  static createGlobalTagGroup(variables) {
+    let body = new FormData();
+    body.set("group", JSON.stringify(variables.group));
+
+    const url = api_url + `global-tags`;
+    return new Promise((resolve, reject) => {
+      axios({
+        method: "post",
+        url: url,
+        data: body,
+        withCredentials: true,
+      })
+        .then((result) => {
+          resolve(result["data"]);
+        })
+        .catch((error) => {
+          reject(axiosErrorHandler(error));
+        });
+    });
+  }
+
+  static mutateGlobalTagGroup(variables) {
+    let body = new FormData();
+    body.set("group", JSON.stringify(variables.group));
+
+    const url = api_url + `global-tags/${variables.group.id}`;
+    return new Promise((resolve, reject) => {
+      axios({
+        method: "put",
+        url: url,
+        data: body,
+        withCredentials: true,
+      })
+        .then((result) => {
+          resolve(result["data"]);
+        })
+        .catch((error) => {
+          reject(axiosErrorHandler(error));
+        });
+    });
+  }
+
+  static deleteGlobalTagGroup(variables) {
+    const url = api_url + `global-tags/${variables.group_id}`;
+    return new Promise((resolve, reject) => {
+      axios({
+        method: "delete",
+        url: url,
+        withCredentials: true,
+      })
+        .then((result) => {
+          resolve(result["data"]);
+        })
+        .catch((error) => {
+          reject(axiosErrorHandler(error));
+        });
+    });
+  }
+
   static fetchGenericData({ queryKey }) {
     const { project_id, includePrior } = queryKey[1];
     const url = api_url + `projects/${project_id}/progress_data`;
