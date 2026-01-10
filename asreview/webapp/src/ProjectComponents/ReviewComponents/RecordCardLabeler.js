@@ -214,7 +214,7 @@ const RecordCardLabeler = ({
       })}
     >
       <Box>
-        {Array.isArray(tagsForm) && tagsForm.length > 0 && (
+        {editState && Array.isArray(tagsForm) && tagsForm.length > 0 && (
           <CardContent>
             <Grid container spacing={2} columns={2}>
               {tagsForm &&
@@ -265,6 +265,31 @@ const RecordCardLabeler = ({
             </Grid>
           </CardContent>
         )}
+        {!editState &&
+          tagValuesState &&
+          tagValuesState.some((group) =>
+            group.values.some((tag) => tag.checked),
+          ) && (
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Selected tags
+              </Typography>
+              <Stack spacing={1}>
+                {tagValuesState.map((group) => {
+                  const selected = group.values.filter((tag) => tag.checked);
+                  if (selected.length === 0) return null;
+                  return (
+                    <Typography key={group.id} variant="body2">
+                      <Box component="span" fontWeight="bold">
+                        {group.label}:
+                      </Box>{" "}
+                      {selected.map((t) => t.label).join(", ")}
+                    </Typography>
+                  );
+                })}
+              </Stack>
+            </CardContent>
+          )}
       </Box>
       <Box>
         {(note !== null || labelFromDataset !== null) && (
